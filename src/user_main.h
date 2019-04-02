@@ -8,9 +8,10 @@
 #include "esplcd.h"
 
 
-#define SEC_TASK_PERIOD	  10000 //ms
+#define SEC_TASK_PERIOD    10000 //ms
 
 static void ICACHE_FLASH_ATTR myTask(void *arg);
+
 void ICACHE_FLASH_ATTR my_init(void);
 
 #endif /* USER_USER_MAIN_H_ */
