@@ -54,26 +54,63 @@ void ICACHE_FLASH_ATTR _i2c_writeDataDelay(uint8_t i2c_data, uint16_t us_delay) 
 
 }
 
+void ICACHE_FLASH_ATTR _lcdSetCGRAMAddress(uint8_t addr, lcd_settings *settings){
+
+  addr %= ( (addr << 3) % 0x40) | 0x40;
+  lcdWriteCMD(addr, settings);
+
+}
+
+void ICACHE_FLASH_ATTR _lcdWriteByte(uint8_t byte, lcd_settings *settings){
+
+	uint8_t data;
+	data = (uint8_t) ((byte & 0xf0) | settings->backlight << 3 | LCD_DATA);
+	_i2c_writeDataDelay((uint8_t) (data | 0x04), LCD_PULSE);
+	_i2c_writeDataDelay(data, LCD_CMD_DELAY);
+
+	data = (uint8_t) ((byte << 0x04) | settings->backlight << 3 | LCD_DATA);
+	_i2c_writeDataDelay((uint8_t) (data | 0x04), LCD_PULSE);
+	_i2c_writeDataDelay(data, LCD_CMD_DELAY);
+
+}
+
 // write a string of char's to the lcd
 void ICACHE_FLASH_ATTR lcdWriteString(char *str, lcd_settings *settings) {
 
-	uint8_t c, data;
+	uint8_t c;
 
 	_i2c_start(settings->address, I2C_WRITE);
 
 	while (*str) {
 
 		c = (uint8_t) *str;
-		data = (uint8_t) ((c & 0xf0) | settings->backlight << 3 | LCD_DATA);
-		_i2c_writeDataDelay((uint8_t) (data | 0x04), LCD_PULSE);
-		_i2c_writeDataDelay(data, LCD_CMD_DELAY);
-
-		data = (uint8_t) ((c << 0x04) | settings->backlight << 3 | LCD_DATA);
-		_i2c_writeDataDelay((uint8_t) (data | 0x04), LCD_PULSE);
-		_i2c_writeDataDelay(data, LCD_CMD_DELAY);
-
+		_lcdWriteByte(c, settings);
 		str++;
 	}
+
+	_i2c_stop();
+
+}
+
+// Writes custom char data in c_data to the specified address in CGRAM (c_data should be of length 8)
+void ICACHE_FLASH_ATTR lcdWriteCustomChar(uint8_t *c_data, uint8_t cgram_addr, lcd_settings *settings){
+
+	uint8_t len = sizeof(c_data) / sizeof(c_data[0]) - 1;
+	len &= 0x07;
+
+	_i2c_start(settings->address, I2C_WRITE);
+
+	_lcdSetCGRAMAddress(cgram_addr, settings);
+
+	while (len >= 0 ){
+
+		_lcdWriteByte(*c_data, settings);
+
+		c_data++;
+		len--;
+	}
+
+	lcdWriteCMD(LCD_HOME, settings);
 
 	_i2c_stop();
 
@@ -108,6 +145,7 @@ void ICACHE_FLASH_ATTR lcdSetCursor(uint8_t x, uint8_t y, lcd_settings *settings
 			break;
 	}
 
+	// Sets the DDRAM address in the address counter
 	lcdWriteCMD((uint8_t) (x | (1 << 7)), settings);
 
 }

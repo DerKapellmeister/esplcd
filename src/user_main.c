@@ -45,6 +45,17 @@ void ICACHE_FLASH_ATTR my_init(void) {
 
 	// Testing
 
+	uint8_t customChar[8] = {
+					0b11111,
+					0b11011,
+					0b10001,
+					0b10001,
+					0b10001,
+					0b10001,
+					0b11011,
+					0b11111,
+	};
+
 	os_timer_disarm(&taskTmr);
 	os_timer_setfn(&taskTmr, (os_timer_func_t *) myTask, (void *) 0);
 	os_timer_arm(&taskTmr, SEC_TASK_PERIOD, 0);
@@ -54,6 +65,8 @@ void ICACHE_FLASH_ATTR my_init(void) {
 	lcd1.address = 0x27;
 
 	lcdInit(&lcd1);
+
+	lcdWriteCustomChar(customChar, 0x00, &lcd1);
 
 	lcdSetCursor(0, 0, &lcd1);
 	lcdWriteString("Row #1", &lcd1);

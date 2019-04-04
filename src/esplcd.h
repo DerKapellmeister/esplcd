@@ -34,5 +34,7 @@ void ICACHE_FLASH_ATTR lcdSetCursor(uint8_t x, uint8_t y, lcd_settings *settings
 
 void ICACHE_FLASH_ATTR lcdUpdateBacklight(lcd_settings *settings);
 
+void ICACHE_FLASH_ATTR lcdWriteCustomChar(uint8_t *c_data, uint8_t cgram_addr, lcd_settings *settings);
+
 
 #endif //ESPLCD_ESPLCD_H
